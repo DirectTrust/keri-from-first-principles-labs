@@ -37,20 +37,20 @@ for name, sch in (("authority", authority), ("chained", chained)):
     json.dump(sch, open(os.path.join(OUT, f"{name}-schema.json"), "w"), indent=1)
     print(f'{name:9} schema SAID: {sch["$id"]}')
 
-# ---- what the edge schema does and does not pin (printed only; the files above are what Lab 14b imports)
+# ---- what the edge schema does and does not fix (printed only; the files above are what Lab 14b imports)
 import copy
 from keri.vc import proving
 authority, chained = done["authority"], done["chained"]
-print("\n### edges: a loose edge schema versus one that pins the parent")
-pinned = copy.deepcopy(chained)
-pe = pinned["properties"]["e"]["oneOf"][1]["properties"]["authority"]
+print("\n### edges: a schema that only requires an edge, versus one that fixes the parent with const")
+withconst = copy.deepcopy(chained)
+pe = withconst["properties"]["e"]["oneOf"][1]["properties"]["authority"]
 pe["properties"]["s"] = {"type": "string", "const": authority["$id"]}       # the parent MUST use this schema
 pe["properties"]["o"] = {"type": "string", "const": "I2I"}                 # and the operator MUST be I2I
 pe["required"] = ["n", "s", "o"]
-pinned["$id"] = ""
-_, pinned = coring.Saider.saidify(sad=pinned, label="$id")
-loose_s, pinned_s = scheming.Schemer(sed=chained), scheming.Schemer(sed=pinned)
-print(f"  pinned schema SAID: {pinned['$id']}  (a different schema, so a different name)")
+withconst["$id"] = ""
+_, withconst = coring.Saider.saidify(sad=withconst, label="$id")
+plain_s, const_s = scheming.Schemer(sed=chained), scheming.Schemer(sed=withconst)
+print(f"  const schema SAID: {withconst['$id']}  (a different schema, so a different name)")
 
 def cred(sch, edge):
     e = {"d": "", "authority": edge}; _, e = coring.Saider.saidify(sad=e, label="d")
@@ -71,7 +71,7 @@ parent = "EAxrd91kGeIIS6mBhhOSGwci1-jWMMH6WjoNtZNpTO4H"
 right = {"n": parent, "s": authority["$id"], "o": "I2I"}
 wrong = {"n": parent, "s": "EBfdlu8R27Fbx-ehrqwImnK-8Cm79sqbAQ4MmvEAYqao", "o": "I2I"}   # some other schema
 noop  = {"n": parent, "s": authority["$id"], "o": "NI2I"}
-for sch, schemer, name in ((chained, loose_s, "loose "), (pinned, pinned_s, "pinned")):
+for sch, schemer, name in ((chained, plain_s, "no const  "), (withconst, const_s, "with const")):
     judge(sch, schemer, f"{name}: edge to an Accreditor Authority, I2I", right)
     judge(sch, schemer, f"{name}: edge to a parent of some OTHER schema", wrong)
     judge(sch, schemer, f"{name}: edge with the operator weakened to NI2I", noop)

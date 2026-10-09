@@ -70,7 +70,7 @@ d = {}
 for k, v in rot.items():
     d[k] = v
     if k == "ba": d["c"] = []
-check("a c field added, as in my first draft", d)
+check("a c field added (not allowed in v1)", d)
 
 print("\n### 5. the schema has versions: KERI v2 field sets")
 for ilk in (Ilks.rot, Ilks.rpy, Ilks.exn): show(ilk, Vrsn_2_0)
